@@ -1,24 +1,38 @@
 import socket
-import sys
+import hashlib
 
 
 server_port = 2347
 fname = "f_at_server.png"
+hasher = hashlib.md5()
+
+
+def fhash(data):
+	hasher.update(data)
+	hashed = hasher.digest()
+	return hashed
+
+
+def check_permission(reciever, data):
+	reciever.send(fhash(data))
+	while reciever.recv(1024) != b'OK':	
+		reciever.send(fhash(data))
 
 
 def recieve_data(reciever, filename):
-	data = reciever.recv(1024)
-	reciever.send(b'ACK')
 	f = open(filename,'wb') #open in binary
 
-	while True:          
+	while True:
+		data = reciever.recv(1024)
+		print(data)
 		if data:
+			check_permission(reciever, data)
 			f.write(data)
+			print("Server sent data.")
 		else:
 			f.close()
 			break
-		data = reciever.recv(1024)
-		reciever.send(b'ACK')
+
 	reciever.close()	
 
 

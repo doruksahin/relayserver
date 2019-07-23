@@ -1,9 +1,10 @@
 import socket
-import sys
+import hashlib
 
 
 relay_port = 1236
 server_port = 2347
+hasher = hashlib.md5()
 
 fname = "f_at_relay.png"
 
@@ -40,6 +41,24 @@ def send_data(filename):
 	sender.close()
 '''
 
+def fhash(data):
+	hasher.update(data)
+	hashed = hasher.digest()
+	return hashed
+
+
+def check_permission(reciever, data):
+	reciever.send(fhash(data))
+	while reciever.recv(1024) != b'OK':	
+		reciever.send(fhash(data))
+
+
+def chk_checksum(sender, data):
+	while sender.recv(1024) != fhash(data):
+		sender.send(data)
+	else:
+		sender.send(b'OK')
+
 
 def recieve_and_send(reciever):
 	sender = socket.socket()
@@ -48,11 +67,10 @@ def recieve_and_send(reciever):
 	while True:
 		data = reciever.recv(1024)       
 		if data:
-			reciever.send(b'ACK')
+			check_permission(reciever, data)
 			sender.send(data)
-			ack_check = sender.recv(1024)
-			if ack_check == b'ACK':
-				pass
+			print("Relay sent data")
+			chk_checksum(sender, data)
 		else:
 			break
 	
