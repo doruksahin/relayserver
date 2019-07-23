@@ -1,52 +1,75 @@
 import socket
 import sys
-import struct
 
 
-relay_port = 1235
-server_port = 2346
+relay_port = 1236
+server_port = 2347
 
 fname = "f_at_relay.png"
 
-
-def recieve_data(conn, filename):
-	data = conn.recv(1024)
+'''
+def recieve_data(reciever, filename):
+	data = reciever.recv(1024)
+	reciever.send(b'ACK')
 	f = open(filename,'wb') #open in binary
 
 	while True:          
 		if data:
 			f.write(data)
+			reciever.send(b'ACK')
 		else:
 			f.close()
 			break
-		data = conn.recv(1024)
-	conn.close()
+		data = reciever.recv(1024)
+	reciever.close()
 
 
-def send_data(sock, filename):
+def send_data(filename):
+	sender = socket.socket()
+	sender.connect(("localhost",server_port))
+
 	f = open (filename, "rb")
 	data = f.read(1024)
-	while (data):
-		sock.send(data)
+	while data:
+		sender.send(data)
+		ack_check = sender.recv(1024)
 		data = f.read(1024)
+		if ack_check == b'ACK':
+			pass
+
+	sender.close()
+'''
+
+
+def recieve_and_send(reciever):
+	sender = socket.socket()
+	sender.connect(("localhost",server_port))
+
+	while True:
+		data = reciever.recv(1024)       
+		if data:
+			reciever.send(b'ACK')
+			sender.send(data)
+			ack_check = sender.recv(1024)
+			if ack_check == b'ACK':
+				pass
+		else:
+			break
+	
+	reciever.close()
+	sender.close()
 
 
 
 if __name__ == '__main__':
-	recieve_socket = socket.socket()
-	recieve_socket.bind(("localhost",relay_port))
-	recieve_socket.listen(10) # Accepts up to 10 connections.
+	reciever = socket.socket()
+	reciever.bind(("localhost",relay_port))
+	reciever.listen(10) # Accepts up to 10 connections.
 
-	sender_socket = socket.socket()
-	sender_socket.connect(("localhost",server_port))
-
-	i = 1
 	while True:
-		conn, address = recieve_socket.accept()
+		recv, address = reciever.accept() # Waits here until client.py do 'sender.connect()'
 		print("accepted")
-		recieve_data(conn, fname)
-		send_data(sender_socket, fname)
-
+		recieve_and_send(recv)
 
 
 	rs.close()

@@ -2,12 +2,13 @@ import socket
 import sys
 
 
-server_port = 2346
+server_port = 2347
 fname = "f_at_server.png"
 
 
-def recieve_data(conn, filename):
-	data = conn.recv(1024)
+def recieve_data(reciever, filename):
+	data = reciever.recv(1024)
+	reciever.send(b'ACK')
 	f = open(filename,'wb') #open in binary
 
 	while True:          
@@ -16,19 +17,20 @@ def recieve_data(conn, filename):
 		else:
 			f.close()
 			break
-		data = conn.recv(1024)
-	conn.close()	
+		data = reciever.recv(1024)
+		reciever.send(b'ACK')
+	reciever.close()	
 
 
 
 if __name__ == '__main__':
-	s = socket.socket()
-	s.bind(("localhost",server_port))
-	s.listen(10) # Accepts up to 10 connections.
+	reciever = socket.socket()
+	reciever.bind(("localhost",server_port))
+	reciever.listen(10) # Accepts up to 10 connections.
 
-	i = 1
 	while True:
-		conn, address = s.accept()
-		recieve_data(conn, fname)
+		recv, address = reciever.accept() # Waits here until relay.py do 'sender.connect()'
+		print("accepted")
+		recieve_data(recv, fname)
 
-	s.close()	
+	# s.close()	
