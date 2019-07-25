@@ -25,8 +25,6 @@ def entropifier(data, katsayi):
 	return newdata
 
 
-
-
 def chk_checksum(sender, data):
 	while sender.recv(1024) != fhash(data):
 		sender.send(data)
