@@ -3,7 +3,7 @@ import hashlib
 from math import *
 from random import *
 
-
+i = 0
 relay_addr = ("127.0.0.1", 1236)
 server_addr = ("127.0.0.1", 2347)
 
