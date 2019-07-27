@@ -33,6 +33,8 @@ def send_data(filename):
 		hash = fhash(data)
 		data += hash
 		sender.sendto(data, relay_addr)
+		while sender.recv(1) != b'+':
+			sender.sendto(data, relay_addr)
 	sender.close()
 
 

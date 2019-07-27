@@ -25,12 +25,23 @@ def recieve_and_send(reciever):
 	sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 	while True:
-		data = reciever.recv(1024 + 16)       
-		if data:
-			data = bytes([change_byte(x) for x in data])
-			sender.sendto(data, server_addr)
-		else:
+		data, client_addr = reciever.recvfrom(1024 + 16)
+
+		if not data:
 			break
+		data = bytes([change_byte(x) for x in data])
+		checksum = data[-16:]
+		packet_data = data[:1024]
+
+		if checksum == fhash(packet_data):
+			sender.sendto(bytes([change_byte(x) for x in data]), server_addr)
+			while sender.recv(1) != b'+':
+				sender.sendto(bytes([change_byte(x) for x in data]), server_addr)
+			reciever.sendto(b'+', client_addr)
+		else:
+			reciever.sendto(b'-', client_addr)
+
+			
 	reciever.close()
 	sender.close()
 
