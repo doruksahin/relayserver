@@ -15,13 +15,6 @@ def fhash(data):
 	hashed = hasher.digest()
 	return hashed
 
-# Client datanin ardindan hashli halini yollar. Relay hicbir kontrol yapmadan aldiklarini gonderir.
-# Server'a geldigimizde hashler kiyaslanir. Hashler ayni ise server OK mesaji yollar. 
-# Client'a gelen mesaj kontrol edilir. OK ise yeni dosya ve yeni hash, OK degilse eski dosya ve eski hash bir daha yollanir.
-
-# Client datayi yollar, hashli halini saklar. Relay hicbir kontrol yapmadan bu datayi server'a iletir.
-# Server aldigi datayi hashler ve dogru mu diye hash'i Client'a yollar.
-# Client hashler ayni ise 'OK' yollar. Ayni degilse data'yi yollar. 
 def send_data(filename):
 	sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	f = open (filename, "rb")

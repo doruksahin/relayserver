@@ -12,30 +12,26 @@ def fhash(data):
 	hashed = hasher.digest()
 	return hashed
 
-
-def check_permission(reciever, data):
-	reciever.send(fhash(data))
-	while True:
-		chk_data = reciever.recv(1024)
-		if chk_data != b'OK':
-			data = chk_data
-			reciever.send(fhash(data))
-		else:
-			break
-	return data
-
-
 def recieve_data(reciever, filename):
 	f = open(filename,'wb') #open in binary
 
 	i = 0
+	valid_packets = 0
+	resend = 0
 	while True:
-		data = reciever.recv(1024)
+		data = reciever.recv(1024 + 16)
 		if data:
-			data = check_permission(reciever, data)
+			checksum = data[-16:]
+			data = data[:1024]
+			if checksum == fhash(data):
+				valid_packets += 1
+				reciever.send(b'+')
+			else:
+				reciever.send(b'-')
+				resend += 1
 			f.write(data)
 			if i % 10 == 0:
-				print(i)
+				print("Total packet:", i+1, "- valid packet:", valid_packets, "- error rate:", (i+1-valid_packets)/(i+1), "- resend:", resend)
 			i += 1
 		else:
 			f.close()
