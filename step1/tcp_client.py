@@ -38,8 +38,9 @@ def send_data(filename):
 		data = f.read(1024)
 		if not data: 
 			break
+		hash = fhash(data)
+		data += hash
 		sender.send(data)
-		chk_checksum(sender, data)
 	sender.close()
 
 

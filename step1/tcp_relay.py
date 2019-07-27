@@ -20,12 +20,9 @@ def recieve_and_send(reciever):
 	sender.connect(server_addr)
 
 	while True:
-		data = reciever.recv(1024)       
+		data = reciever.recv(1024 + 16)       
 		if data:
 			sender.send(data)
-			if data != b'OK':
-				client_response = sender.recv(1024)
-				reciever.send(client_response)
 		else:
 			break
 	reciever.close()

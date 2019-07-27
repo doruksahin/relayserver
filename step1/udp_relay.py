@@ -18,12 +18,9 @@ def recieve_and_send(reciever):
 	sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 	while True:
-		data, cli_addr = reciever.recvfrom(1024)     
+		data, cli_addr = reciever.recvfrom(1024 + 16)     
 		if data:
 			sender.sendto(data, server_addr)
-			if data != b'OK':
-				client_response, addr = sender.recvfrom(1024)
-				reciever.sendto(client_response, cli_addr)
 		else:
 			break
 	reciever.close()

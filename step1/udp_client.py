@@ -40,8 +40,9 @@ def send_data(filename):
 		data = f.read(1024)
 		if not data: 
 			break
+		hash = fhash(data)
+		data += hash
 		sender.sendto(data, relay_addr)
-		chk_checksum(sender, data)
 	sender.close()
 
 
