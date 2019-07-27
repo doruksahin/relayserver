@@ -12,30 +12,21 @@ def fhash(data):
 	hashed = hasher.digest()
 	return hashed
 
-
-def check_permission(reciever, data, relay_addr):
-	reciever.sendto(fhash(data), relay_addr)
-	while True:
-		chk_data, relay_addr = reciever.recvfrom(1024)
-		if chk_data != b'OK':
-			data = chk_data
-			reciever.sendto(fhash(data), relay_addr)
-		else:
-			break
-	return data
-
-
 def recieve_data(reciever, filename):
 	f = open(filename,'wb') #open in binary
 
 	i = 0
+	valid_packets = 0
 	while True:
-		data, relay_addr = reciever.recvfrom(1024)
+		data = reciever.recv(1024 + 16)
 		if data:
-			data = check_permission(reciever, data, relay_addr)
+			checksum = data[-16:]
+			data = data[:1024]
+			if checksum == fhash(data):
+				valid_packets += 1
 			f.write(data)
 			if i % 10 == 0:
-				print(i)
+				print("Total packet:", i+1, "- valid packet:", valid_packets, "- error rate:", (i+1-valid_packets)/(i+1))
 			i += 1
 		else:
 			f.close()

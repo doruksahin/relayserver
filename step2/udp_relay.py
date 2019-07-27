@@ -1,12 +1,13 @@
 import socket
 import hashlib
 from math import *
-from random import *
+import random
 
 
 relay_addr = ("127.0.0.1", 1236)
 server_addr = ("127.0.0.1", 2347)
-i = 0
+
+error_rate = 0.001
 
 def fhash(data):
 	hasher = hashlib.md5()
@@ -15,32 +16,19 @@ def fhash(data):
 	return hashed
 
 
-def entropifier(data, error_rate):
-	global i
-	success_rate = int(pow(1-error_rate, len(data))*10000)
-	newdata = b""
-	newdata += data
-	
-	chance = randrange(10000)
-	if chance >= success_rate:
-		i += 1
-		print(i)
-		newdata += b"x"
-		newdata = newdata[1:]
-	return newdata
+def change_byte(byte):
+	if random.random() < error_rate:
+		return not byte
+	return byte
 
-
-def recieve_and_send(reciever, error_rate):
+def recieve_and_send(reciever):
 	sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 	while True:
-		data, cli_addr = reciever.recvfrom(1024)     
+		data = reciever.recv(1024 + 16)       
 		if data:
-			data = entropifier(data, error_rate)
+			data = bytes([change_byte(x) for x in data])
 			sender.sendto(data, server_addr)
-			if data != b'OK':
-				client_response, addr = sender.recvfrom(1024)
-				reciever.sendto(client_response, cli_addr)
 		else:
 			break
 	reciever.close()
@@ -49,12 +37,8 @@ def recieve_and_send(reciever, error_rate):
 
 
 if __name__ == '__main__':
-	error_rate = 0.001
-	print("Success rate for len = 100: {}".format(int(pow(1-error_rate, 100)*10000)))
-	print("Success rate for len = 100: {}".format(pow(1-error_rate, 250)*10000))
-	print("Success rate for len = 1024: {}".format(int(pow(1-error_rate, 1024)*10000)))
 	reciever = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	reciever.bind(relay_addr)
 
 	while True:
-		recieve_and_send(reciever, error_rate)
+		recieve_and_send(reciever)

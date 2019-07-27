@@ -15,16 +15,6 @@ def fhash(data):
 	hashed = hasher.digest()
 	return hashed
 
-
-def chk_checksum(sender, data):
-	while sender.recvfrom(1024)[0] != fhash(data):
-		sender.sendto(data, relay_addr)
-		print("Fail")
-	else:	
-		print("OK")
-		sender.sendto(b'OK', relay_addr)
-
-
 # Client datanin ardindan hashli halini yollar. Relay hicbir kontrol yapmadan aldiklarini gonderir.
 # Server'a geldigimizde hashler kiyaslanir. Hashler ayni ise server OK mesaji yollar. 
 # Client'a gelen mesaj kontrol edilir. OK ise yeni dosya ve yeni hash, OK degilse eski dosya ve eski hash bir daha yollanir.
@@ -40,8 +30,9 @@ def send_data(filename):
 		data = f.read(1024)
 		if not data: 
 			break
+		hash = fhash(data)
+		data += hash
 		sender.sendto(data, relay_addr)
-		chk_checksum(sender, data)
 	sender.close()
 
 
